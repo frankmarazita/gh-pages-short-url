@@ -1,0 +1,34 @@
+name: Delete Link
+
+on:
+  workflow_dispatch:
+    inputs:
+      id:
+        description: 'Short URL identifier to delete (e.g., "example")'
+        required: true
+        type: string
+
+jobs:
+  delete-link:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Delete link from JSON
+        run: ./scripts/delete-link.sh "${{ inputs.id }}"
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          git add links.json
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Delete link: ${{ inputs.id }}"
+            git push
+          fi

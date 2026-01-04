@@ -1,0 +1,38 @@
+name: Create Link
+
+on:
+  workflow_dispatch:
+    inputs:
+      id:
+        description: 'Short URL identifier (e.g., "example")'
+        required: true
+        type: string
+      url:
+        description: 'Destination URL (e.g., "https://example.com")'
+        required: true
+        type: string
+
+jobs:
+  create-link:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create link in JSON
+        run: ./scripts/create-link.sh "${{ inputs.id }}" "${{ inputs.url }}"
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          git add links.json
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Create link: ${{ inputs.id }} -> ${{ inputs.url }}"
+            git push
+          fi
